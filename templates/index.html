@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Upload de fichier</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1 class="mt-5">Upload de fichier</h1>
+                <hr/>
+                <div id="upload-form">
+                    {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-danger">{{ message }}</div>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+                    <form method="POST" action="{{ url_for('upload') }}" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="file">Fichier:</label>
+                            <input type="file" class="form-control-file" id="file" name="file">
+                        </div>
+                        <button type="submit" class="btn btn-primary" onclick="launchprogress();">Envoyer</button>
+                    </form>
+                </div>
+                <div id="progress" style="display: none;">
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div id="status"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $("#upload-form").submit(function() {
+                $("#upload-form").hide();
+                $("#progress").show();
+                var intervalId = setInterval(function() {
+                    $.get("/progress", function(data) {
+                        if (data.progress != undefined) {
+                            var percent = data.progress + "%";
+                            $(".progress-bar").css("width", percent).attr("aria-valuenow", data.progress).text(percent);
+                            if (data.progress == 100) {
+                                clearInterval(intervalId);
+                                $("#status").text("Opération terminée !");
+                            }
+                        }
+                    });
+                }, 1000);
+            });
+        });
+    </script>
+</body>
+</html>
